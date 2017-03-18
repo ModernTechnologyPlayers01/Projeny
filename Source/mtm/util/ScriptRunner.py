@@ -23,6 +23,7 @@ class ScriptRunner:
 
         except Exception as e:
             self._log.error(str(e))
+            self._log.error('See PrjLog.txt for more details')
 
             # Only print stack trace if it's a build-script error
             if not isinstance(e, ProcessErrorCodeException) and not isinstance(e, ProcessTimeoutException):
@@ -40,3 +41,4 @@ class ScriptRunner:
             self._log.info('Operation completed with errors.  Took ' + totalSecondsStr + '.\n')
 
         return succeeded
+

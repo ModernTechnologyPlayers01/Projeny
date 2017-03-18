@@ -14,6 +14,7 @@ from mtm.util.Assert import *
 
 class VarManager:
     _config = Inject('Config')
+    _log = Inject('Logger')
 
     '''
     Stores a dictionary of keys to values to replace path variables with
@@ -70,6 +71,8 @@ class VarManager:
         allArgs = self._params.copy()
         allArgs.update(extraVars)
 
+        originalText = text
+
         while True:
             match = self._regex.match(text)
 
@@ -85,7 +88,14 @@ class VarManager:
             if var in allArgs:
                 replacement = allArgs[var]
             else:
-                replacement = self.get(var)
+                replacement = self.tryGet(var)
+
+                if not replacement:
+                    replacement = os.environ.get(var)
+
+                    if not replacement:
+                        self._log.warn("Unable to resolve variable '{0}' when expanding '{1}'".format(var, originalText))
+                        replacement = var
 
             text = prefix + replacement + suffix
 
@@ -93,4 +103,5 @@ class VarManager:
             raise Exception("Unable to find all keys in path '{0}'".format(text))
 
         return text
+
 

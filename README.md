@@ -2,6 +2,12 @@
 <img src="Docs/LogoWhiteWithText.png?raw=true" alt="Projeny" width="250px" height="246px"/>
 ## Project and Package Manager for Unity3D
 
+[![Join the chat at https://gitter.im/Projeny/Lobby](https://badges.gitter.im/Projeny/Lobby.svg)](https://gitter.im/Projeny/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+If you or your team has benefited from this project, consider <a href="http://svermeulen.github.io/DonateToProjeny.html">buying me a coffee</a>!  Every donation makes me significantly more likely to find time to maintain/extend it.
+
+<a href="http://svermeulen.github.io/DonateToProjeny.html"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" alt="Buy me a coffee!"/></a>
+
 ### <a id="introduction"></a>Introduction ###
 
 The purpose of Projeny is to allow your Unity3D project to easily scale in size without heavily impacting development time.
@@ -18,7 +24,7 @@ Projeny allows you to:
 
 See below for details on how Projeny achieves all these features.
 
-This project is open source.  If you're interested in helping, great!  There's still a number of features we'd like to support eventually (in particular we need help with supporting OSX!).
+This project is open source.  If you're interested in helping, great!  There's still a number of features we'd like to support eventually (in particular we need help with supporting OSX).
 
 NOTE: Projeny requires Unity3D 5.3.1 or higher, since it makes use of the `-buildTarget` command line switch is only fixed in 5.3.1
 
@@ -38,11 +44,12 @@ NOTE: Projeny requires Unity3D 5.3.1 or higher, since it makes use of the `-buil
     * <a href="#managing-assetstore-assets">Managing Asset Store Assets / Releases</a>
     * <a href="#multiplepackagefolders">Using Multiple Package Folders</a>
     * <a href="#shareprojectsettings">Sharing Project Settings</a>
-    * <a href="#gotchas">Gotchas / Miscellaneous Tips and Tricks</a>
+    * <a href="#directorylinksgotchas">Gotchas With Directory Links</a>
     * <a href="#faq">Frequently Asked Questions</a>
         * <a href="#workflow-create-package">How do I create a new package?</a>
         * <a href="#workflow-create-project">How do I create a new project?</a>
         * <a href="#workflow-create-new-config">How do I start an entirely new set of Projeny-based project from scratch?</a>
+        * <a href="#standardassets">How do I import Unity's Standard Assets?</a>
     * Configuration Files
         * <a href="#projeny-yaml">Projeny.yaml reference</a>
         * <a href="#project-yaml">ProjenyProject.yaml reference</a>
@@ -56,7 +63,7 @@ NOTE: Projeny requires Unity3D 5.3.1 or higher, since it makes use of the `-buil
 
 ## <a id="installation"></a>Installation
 
-You can either run Projeny directly from source (requires python) or simply download the latest binary.  Note that Projeny is currently only supported on Windows.
+You can either run Projeny directly from source (requires python) or simply download the latest binary.  Note that Projeny is currently only supported on Windows (with an OSX version planned for future releases).
 
 - From Binary
 
@@ -66,10 +73,12 @@ You can either run Projeny directly from source (requires python) or simply down
 - From Source
 
     - Clone this repo to a place on your hard drive
-    - Make sure python 3.x is installed
+    - Make sure python 3.x is installed and that you have also installed the following:
+        - pyyaml (to install run `pip install pyyaml`)
+        - python for windows extensions (download [here](https://sourceforge.net/projects/pywin32/) for your version of python)
     - Open UnityPlugin/Projeny.sln in Visual Studio
     - Build in Release Mode
-    - Add the Projeny/Source/bin folder to your windows path.  NOTE:  This is Projeny/Source/bin NOT Projeny/bin (the latter is used for exe builds)
+    - Add the Projeny/Source/bin folder to your windows path
 
 ## <a id="overview"></a>Overview
 
@@ -388,15 +397,27 @@ Like all project settings, this is configured within the `ProjenyProject.yaml` f
 
 Note that since we haven't added any packages yet to our new project, there isn't a line for `AssetsFolder` and `PluginsFolder` yet.
 
-## <a id="gotchas"></a>Gotchas / Miscellaneous Tips and Tricks
+## <a id="directorylinksgotchas"></a>"Gotchas" With Directory Links
+
+* Moving package folders around within Unity directly
+    * You are free to move files and directories around within Unity using Unity's "Project" tab, however, you should be careful not to move any package directories themselves.  Otherwise, you could end up with duplicate files the next time you get projeny to update your directory links.
+
+* Copying and pasting projects doesn't work
+    * If you copy and paste your entire directory structure to another location on your hard drive, the directory links will become empty folders in the new location.  To address this issue, after copying and pasting your files, run `prj -cla --init` on the new location.  All this does is clears all the generated files (`-cla`) and then initializes all the directory links for all projects (`--init`).
+
+* If you are using git for source control, you should be careful when using `git clean`
+    * Running `git clean -df` should work as expected, but if you run `git clean -xdf` you could lose some data.  This is because `git clean` follows directory links.  So if it tries to delete the generated files underneath your `UnityProjects` directory, this will also delete some files within the `UnityPackages` directory.  Running `git clean -df` will not have this problem because your `UnityProjects` folders should be ignored by git already and `git clean` will only delete ignored files if you also supply the `-x` option.  If you do need to include the `-x` option, then we recommend you run `prj -cla` first, which will ensure that all generated files have been cleared first.
+
+* Unlike when using `git clean`, deleting folders with Windows Explorer is safe.
+    * If you delete different unity projects underneath your `UnityProjects` directory when using Windows Explorer, this should not delete any files within `UnityPackages` (unlike when using `git clean`).  This is because when Windows Explorer encounters directory links, it just removes the reference rather than recursing into it.
 
 * After opening your project for the first time (or when adding new packages) Unity will show the following warning:
 
-```
-[Asset] is a symbolic link. Using symlinks in Unity projects may cause your project to become corrupted if you create multiple references to the same asset, use recursive symlinks or use symlinks to share assets between projects used with different versions of Unity. Make sure you know what you are doing.
-```
+    ```
+    [Asset] is a symbolic link. Using symlinks in Unity projects may cause your project to become corrupted if you create multiple references to the same asset, use recursive symlinks or use symlinks to share assets between projects used with different versions of Unity. Make sure you know what you are doing.
+    ```
 
-However, we are not doing any of the things that Unity warns about here so this warning can be ignored.
+    However, we are not doing any of the things that Unity warns about here so this warning can be ignored.
 
 ## <a id="faq"></a>Frequently Asked Questions
 
@@ -428,7 +449,7 @@ However, we are not doing any of the things that Unity warns about here so this 
     * <a id="workflow-create-project-command-line"></a>Method 2 - Command Line
         * Enter command prompt / powershell at the same directory where your `Projeny.yaml` file is
         * Execute `prj --project MyNewProject --createProject` (or the shortened form `prj -p MyNewProject -cpr`)
-        * Done.  You can now open your project in Unity
+        * Done.  You can now open [ProjectName]-Windows directory in Unity.
         * (optional) Add a `ProjenyProject.yaml` file to your new project folder. See <a href="#project-yaml">here</a> for details.
 
 * #### <a id="workflow-create-new-config"></a>How do I start an entirely new set of Projeny-based packages/projects from scratch?
@@ -453,6 +474,12 @@ However, we are not doing any of the things that Unity warns about here so this 
         * Create a new directory named `UnityProjects`
         * Done
         * After this, you will probably want to <a href="#workflow-create-project-command-line">create a project</a>
+
+* #### <a id="standardassets"></a>How do I import Unity's Standard Assets?
+
+Unity's Standard Assets actually makes for a good example of using Projeny, since all the standard asset packages depend on each other in some ways.
+
+For Unity version 5.3.4, we have extracted all the Standard Assets into their own Projeny packages, and also declared the proper dependencies for each using `ProjenyPackage.yaml` files.  This can be downloaded as `StandardAssets-Unity5.3.4.zip` from the [releases page](https://github.com/modesttree/Projeny/releases/tag/v0.3.4).  To use, you can extract `StandardAssets-Unity5.3.4.zip` into your UnityPackages folder and drag whichever Standard Assets package you need into your project via the projeny gui
 
 ## <a id="projeny-yaml"></a>Projeny.yaml reference
 
@@ -492,7 +519,14 @@ Here is the full list of configuration settings.  Note that you don't need to in
     # tool whenever the `-p` option is not included
     DefaultProject: AllMovers
 
+    # This is a collection of paths that are used by projeny
+    # You can also define your own variables here and use them in any of the config files
+    # Note also that you can use environment variables here the same way eg: [SOME_ENVIRONMENT_VARIABLE]
     PathVars:
+        # This setting is required
+        # This will determine where projeny looks for the unity projects
+        UnityProjectsDir: '[ConfigDir]/UnityProjects'
+
         # This setting is necessary for many different Projeny operations 
         # so that Projeny knows how to run Unity. By default it will 
         # guess the following path
@@ -546,6 +580,10 @@ Here is the full list of configuration settings.  Note that you don't need to in
         # 'VisualStudioCommandLinePath' as well in the PathVars section above
         UseDevenv: False
 
+    SolutionGeneration:
+        # This will be used in the "DefaultNamespace" field for generated visual studio projects
+        RootNamespace: MyCompanyName
+
 ## <a id="project-yaml"></a>ProjenyProject.yaml reference
 
 In most cases you can edit the `ProjenyProject.yaml` file using the Package Manager from within Unity.  However, the Package Manager GUI does not include everything (for example, solution folders cannot be configured from the package manager)
@@ -587,6 +625,15 @@ The format of `ProjenyProject.yaml` is as follows:
     PackageFolders:
         - {DirectoryPath}
         - {DirectoryPath}
+
+    TargetPlatforms:
+        - Windows
+        - WebPlayer
+        - Android
+        - WebGL
+        - OSX
+        - Linux
+        - iOS
 
 Where:
 * `{PackageName}` represents the name of a directory that is in one of the `PackageFolders` directories
@@ -671,7 +718,7 @@ Notes:
 
 ## <a id="custom-release-registries"></a>Custom Release Sources
 
-A mentioned in the <a href="#managing-assetstore-assets">above section</a>, the list of releases _usually_ corresponds to your list of asset store purchases, however it supports other sources as well.  
+A mentioned in the <a href="#managing-assetstore-assets">above section</a>, the list of releases is usually just a list of your asset store purchases, however it supports other sources as well.
 
 Every source is ultimately just a collection of Unity packages.  This is also what Unity stores in the asset store cache, so even in that case, it is just a list of Unity packages.
 
@@ -686,6 +733,8 @@ One convenient place that you might want to put this is in the system wide Proje
 Now, if you copy and paste `.unitypackage` files into this folder, and click the Refresh button in the Package Manager (accessed within Unity through the menu at `Projeny -> Package Manager`) then these `.unitypackage` files will be displayed in the Releases list.
 
 Note that you can add multiple local folder sources using different paths, including those on a network share.
+
+Note also that you can specify the version for your custom unitypackage file by using the following naming convention:  `MyCustomPackage@1.2.unitypackage`.  In this case, it will load it as version "1.2".  This naming convention is only necessary for custom unitypackage files that you create yourself.  Any `unitypackage` files that you download through the asset store will have this version information embedded into it.
 
 Sharing a release source over a network can be very useful when working in an office environment that has its own LAN.   Your organization can build up a big collection of "releases" that anyone in the organization can have access to.
 
@@ -825,7 +874,14 @@ What follows is the full list of command line parameters that you can pass to th
 
 ## <a id="release-notes"></a>Release Notes
 
-0.2 (December, 2015)
+0.3 (February, 2016)
+- Better error handling and error output
+- Added ability to share project settings folders across multiple projects
+- Added support for multiple packages directories. This is particularly useful to define project-specific packages.
+- Added support for special handling of prebuilt projects that produce assemblies (however this is undocumented currently)
+- Bug fixes
+
+0.2 (January, 2015)
 - Added GUI for package management within Unity, also added a lot more documentation
 
 0.1 (December, 2015)
