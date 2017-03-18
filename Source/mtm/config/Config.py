@@ -106,6 +106,7 @@ class Config:
                     break
 
                 currentDict = currentDict[name]
+                assertThat(type(currentDict) is dict, "Unexpected type '{0}' found for '{1}': {2}", type(currentDict), '.'.join(args[0:i+1]), currentDict)
 
         return result
 

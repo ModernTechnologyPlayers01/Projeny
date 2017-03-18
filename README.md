@@ -2,6 +2,12 @@
 <img src="Docs/LogoWhiteWithText.png?raw=true" alt="Projeny" width="250px" height="246px"/>
 ## Project and Package Manager for Unity3D
 
+[![Join the chat at https://gitter.im/Projeny/Lobby](https://badges.gitter.im/Projeny/Lobby.svg)](https://gitter.im/Projeny/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+If you or your team has benefited from this project, consider <a href="http://svermeulen.github.io/DonateToProjeny.html">buying me a coffee</a>!  Every donation makes me significantly more likely to find time to maintain/extend it.
+
+<a href="http://svermeulen.github.io/DonateToProjeny.html"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" alt="Buy me a coffee!"/></a>
+
 ### <a id="introduction"></a>Introduction ###
 
 The purpose of Projeny is to allow your Unity3D project to easily scale in size without heavily impacting development time.
@@ -443,7 +449,7 @@ Note that since we haven't added any packages yet to our new project, there isn'
     * <a id="workflow-create-project-command-line"></a>Method 2 - Command Line
         * Enter command prompt / powershell at the same directory where your `Projeny.yaml` file is
         * Execute `prj --project MyNewProject --createProject` (or the shortened form `prj -p MyNewProject -cpr`)
-        * Done.  You can now open your project in Unity
+        * Done.  You can now open [ProjectName]-Windows directory in Unity.
         * (optional) Add a `ProjenyProject.yaml` file to your new project folder. See <a href="#project-yaml">here</a> for details.
 
 * #### <a id="workflow-create-new-config"></a>How do I start an entirely new set of Projeny-based packages/projects from scratch?
@@ -513,6 +519,9 @@ Here is the full list of configuration settings.  Note that you don't need to in
     # tool whenever the `-p` option is not included
     DefaultProject: AllMovers
 
+    # This is a collection of paths that are used by projeny
+    # You can also define your own variables here and use them in any of the config files
+    # Note also that you can use environment variables here the same way eg: [SOME_ENVIRONMENT_VARIABLE]
     PathVars:
         # This setting is required
         # This will determine where projeny looks for the unity projects
@@ -616,6 +625,15 @@ The format of `ProjenyProject.yaml` is as follows:
     PackageFolders:
         - {DirectoryPath}
         - {DirectoryPath}
+
+    TargetPlatforms:
+        - Windows
+        - WebPlayer
+        - Android
+        - WebGL
+        - OSX
+        - Linux
+        - iOS
 
 Where:
 * `{PackageName}` represents the name of a directory that is in one of the `PackageFolders` directories
